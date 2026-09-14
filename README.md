@@ -113,3 +113,12 @@ Do not `snap install antigravity-cli` — that adds a third, separate copy.
 Note the account is shared with `agy` on securemind-agent and the MineOS Genie, so this box
 draws on the **same Google AI Pro quota pool** as those. If that turns into contention, the
 fix is a dedicated account for this host, not a second install.
+
+## Public repo — where the real rules live
+
+This repository is **public**. It therefore ships the **mechanism** plus *example* rules only.
+
+The actual rule values for a given host — internal ports, service paths, credential store
+locations — are a map of that network and do not belong here. Keep them in a private location
+(`~/cmdb` on this fleet) and have the guard read them at runtime, the same way the rest of the
+homelab code reads credentials from the vault rather than embedding them.

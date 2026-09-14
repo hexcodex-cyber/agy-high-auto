@@ -102,3 +102,14 @@ AGY_HIGH_AUTO_CONFIRMED=1 ./agy-high-auto
 Both are byte-identical official Google builds (sha256 `e8f90ef6…`). Authentication and
 config are **per-user** under `~/.gemini/`; signing in as one does nothing for the other.
 Do not `snap install antigravity-cli` — that adds a third, separate copy.
+
+## Decisions on record
+
+| Decision | Value | Date |
+|---|---|---|
+| agy account for `hexcodex-r620` | **`hexcodex@kymbob.com`** (Google AI Pro) | 2026-09-14 |
+| Repo home | **`hexcodex-cyber/agy-high-auto`** — new repo; `gemini-high-auto` left intact for history | 2026-09-14 |
+
+Note the account is shared with `agy` on securemind-agent and the MineOS Genie, so this box
+draws on the **same Google AI Pro quota pool** as those. If that turns into contention, the
+fix is a dedicated account for this host, not a second install.

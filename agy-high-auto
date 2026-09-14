@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# agy-high-auto - launch Antigravity CLI with the homelab guard hook active.
+#
+# Successor to gemini-high-auto. NOT a port: agy has no GEMINI_GUARD_SHELL
+# equivalent, so the guard is a PreToolUse hook rather than a wrapper shell.
+# See README.md.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HOOKS_SRC="$ROOT/hooks/hooks.json"
+HOOKS_DST="${AGY_HOOKS_DST:-$HOME/.gemini/antigravity-cli/hooks.json}"
+
+if ! command -v agy >/dev/null 2>&1; then
+  echo "agy-high-auto: Antigravity CLI not found in PATH ('agy')." >&2
+  echo "  This box: /home/hexcodex-r620/.local/bin/agy (user hexcodex-r620)" >&2
+  echo "            /home/hexcodex/.local/bin/agy      (user hexcodex)" >&2
+  exit 127
+fi
+
+# Install the hook config if absent. Never clobber an existing one silently.
+if [[ ! -f "$HOOKS_DST" ]]; then
+  mkdir -p "$(dirname "$HOOKS_DST")"
+  cp "$HOOKS_SRC" "$HOOKS_DST"
+  echo "agy-high-auto: installed hook config -> $HOOKS_DST" >&2
+elif ! cmp -s "$HOOKS_SRC" "$HOOKS_DST"; then
+  echo "agy-high-auto: note - $HOOKS_DST differs from the repo copy; leaving it alone." >&2
+fi
+
+# The guard is UNPROVEN until a probe run confirms the hook actually fires.
+# Until then, refuse to hand over full autonomy: require an explicit opt-in.
+if [[ "${AGY_HIGH_AUTO_CONFIRMED:-0}" == "1" ]]; then
+  exec agy --dangerously-skip-permissions "$@"
+fi
+
+echo "agy-high-auto: guard not yet confirmed - running WITH approval prompts." >&2
+echo "  Verify the hook fires:  cat ~/.agy-hook-probe.jsonl" >&2
+echo "  Then re-run with:       AGY_HIGH_AUTO_CONFIRMED=1 agy-high-auto" >&2
+exec agy "$@"

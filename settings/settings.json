@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "deny": [
+      "command(rm)", "command(rmdir)", "command(shred)", "command(unlink)",
+      "command(mkfs)", "command(dd)", "command(fdisk)", "command(parted)",
+      "command(wipefs)", "command(truncate)", "command(mv /)",
+
+      "command(shutdown)", "command(reboot)", "command(poweroff)", "command(halt)",
+      "command(init)", "command(systemctl stop)", "command(systemctl restart)",
+      "command(systemctl disable)", "command(systemctl mask)", "command(service)",
+      "command(killall)", "command(pkill)",
+
+      "command(docker stop)", "command(docker rm)", "command(docker kill)",
+      "command(docker system prune)", "command(docker volume rm)",
+      "command(docker compose down)",
+
+      "command(userdel)", "command(passwd)", "command(visudo)", "command(usermod)",
+      "command(chown -R)", "command(chmod -R)", "command(chmod 777)",
+
+      "command(apt remove)", "command(apt purge)", "command(apt-get remove)",
+      "command(apt-get purge)", "command(snap remove)",
+
+      "command(iptables)", "command(nft)", "command(ip link)", "command(ifconfig)",
+      "command(ufw)",
+
+      "command(git push --force)", "command(git reset --hard)", "command(git clean)",
+
+      "command(sudo)",
+
+      "command(qm)", "command(pct)", "command(pvesm)", "command(zfs destroy)",
+
+      "command(ansible-vault)", "command(vault)"
+    ]
+  }
+}

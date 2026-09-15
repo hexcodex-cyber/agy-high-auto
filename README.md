@@ -218,3 +218,69 @@ the Claude remote-control guard works and why this repo exists at all.
 agy ships `/permissions` and `/hooks` slash-commands that add, edit and remove rules across all
 three config scopes from inside an interactive session. **That is the vendor's own schema and the
 next thing to read** — it beats any further black-box probing of the binary.
+
+---
+
+# SOLVED — 2026-09-15. Use `permissions.deny`, not hooks.
+
+The hook approach above is **superseded**. agy has a native, documented permission system that
+does exactly what this repo was built for, and it works.
+
+## The finding
+
+**Deny rules override `--dangerously-skip-permissions`.** Measured:
+
+```
+$ agy --dangerously-skip-permissions -p "run exactly: rm -f /tmp/deleteme_test"
+Permission denied for command(rm -f /tmp/deleteme_test). Matches user-configured deny rule.
+$ ls /tmp/deleteme_test        # file still there
+```
+
+That is the whole product: **no approval prompts, and destructive commands still hard-stop.**
+
+## The format
+
+`~/.gemini/antigravity-cli/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": ["command(ls)", "command(df)"],
+    "deny":  ["command(rm)", "command(shutdown)"]
+  }
+}
+```
+
+Three scopes exist — `project`, `shared`, `global`. A file at the path above lands in `global`.
+
+**Verify rules actually loaded** (this is a real readback, unlike the hooks counter):
+
+```bash
+agy -p "/permissions" --output-format json
+```
+
+Returns `{"permissions":[{"scope":"project"},{"scope":"shared"},{"scope":"global","deny":[...]}]}`.
+
+## Gotchas
+
+- **Single-token rules are reliable; multi-word ones are not.** `command(rm)` blocks
+  `rm -f /path`. `command(chmod -R)` did **not** block `chmod -R 777 /path` in testing. Prefer
+  `command(chmod)` and accept the wider net.
+- **Allow-rules are ignored in headless `-p` mode** — agy says so explicitly: *"Settings
+  allow-rules do not apply; re-run with --dangerously-skip-permissions."* Deny rules **do** still
+  apply there, which is what matters.
+- A denied command costs a model turn — agy tries, then is refused. Blocking is not free.
+
+## Why the hook approach failed
+
+Kept above as a record. In short: `$SHELL` is ignored by agy; the `PreToolUse` hook loads but
+never fires; and `JSONHookSpec`'s fields are undocumented and unprobeable because
+`dropUnsupportedFields` silently strips unknown keys. None of that matters now — `permissions.deny`
+is native, documented, and verified.
+
+## Ship it
+
+`settings/settings.json` in this repo is a starting deny-list: filesystem destruction, power and
+service control, Docker teardown, user/permission changes, package removal, firewall changes,
+destructive git, Proxmox guest commands, and vault access. **Tune it to your own fleet** — and
+remember the deny list is the only thing standing between an unattended agent and your servers.

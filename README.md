@@ -58,6 +58,43 @@ Rules worth encoding here, none of which `agy` can infer:
 | `hooks/hooks.json` | Hook wiring. **Candidate schema — unverified.** |
 | `guard/probe.sh` | Discovery hook: records what `agy` passes it, then always allows. |
 
+## Install
+
+Requires Antigravity CLI (`agy`) already installed and signed in.
+
+```bash
+git clone https://github.com/hexcodex-cyber/agy-high-auto.git ~/tools/agy-high-auto
+cd ~/tools/agy-high-auto
+./agy-high-auto            # installs hooks.json, runs agy WITH approval prompts
+```
+
+The launcher copies `hooks/hooks.json` to `~/.gemini/antigravity-cli/hooks.json` on first run
+(it never overwrites an existing one), then execs `agy`.
+
+Optional convenience command:
+
+```bash
+cat > ~/.local/bin/agyauto <<'SH'
+#!/usr/bin/env bash
+exec env AGY_HIGH_AUTO_CONFIRMED=1 "$HOME/tools/agy-high-auto/agy-high-auto" "$@"
+SH
+chmod 755 ~/.local/bin/agyauto
+```
+
+### Confirm agy is actually reading the config
+
+```bash
+agy --log-file /tmp/h.log -p "x" ; grep hooks_manager /tmp/h.log
+```
+
+Expect `loaded 1 named hooks from 1 hooks.json file(s)`. A parse error names the offending file.
+
+> **Known state, 2026-09-15: agy loads the hook config, but the hook has never been observed to
+> run.** `~/.agy-hook-probe.jsonl` is still empty after real sessions. The schema in
+> `hooks/hooks.json` is inferred from the binary, not confirmed, and may simply be wrong.
+> **Installing this today gives you a guard that does nothing.** Do not set
+> `AGY_HIGH_AUTO_CONFIRMED=1` believing you are protected by it.
+
 ## Step 1 — discovery (do this first)
 
 The hook schema was reverse-engineered from strings in the `agy` binary

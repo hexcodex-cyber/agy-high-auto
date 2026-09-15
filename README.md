@@ -159,3 +159,34 @@ The actual rule values for a given host — internal ports, service paths, crede
 locations — are a map of that network and do not belong here. Keep them in a private location
 (`~/cmdb` on this fleet) and have the guard read them at runtime, the same way the rest of the
 homelab code reads credentials from the vault rather than embedding them.
+
+## Proven finding — 2026-09-15
+
+Tested on agy 1.2.2, hexcodex-r620:
+
+```
+agy --dangerously-skip-permissions -p "run ... echo HOOKTEST"
+→ HOOKTEST                                     (command executed)
+→ hooks_manager.go:53] loaded 1 named hooks    (config loaded)
+→ ~/.agy-hook-probe.jsonl                      (EMPTY — hook never ran)
+```
+
+**`loaded N named hooks` is not validation.** It counts top-level keys. A file containing
+`{"anything": {...}}` reports 1 loaded regardless of whether the spec means anything.
+
+**The schema is still unknown.** Field names cannot be probed by feeding wrong types, because
+`jsonhook.dropUnsupportedFields` silently strips unrecognised keys before unmarshal — so an
+invalid spec is indistinguishable from a valid one at load time.
+
+What *is* established:
+- top level is `map[string]JSONHookSpec` — each key is a hook name (proved by the `_comment` error)
+- `~/.gemini/antigravity-cli/hooks.json` is the path that gets read
+- in **headless** mode agy's permission gate short-circuits *before* hooks run (second-agent finding)
+- with `--dangerously-skip-permissions` the tool runs and the hook still does not fire
+
+**Therefore `AGY_HIGH_AUTO_CONFIRMED=1` currently gives you unguarded auto-approval.** The
+launcher's gate is the only thing standing between a user and that, and it is a honour-system
+env var, not a guarantee.
+
+Next step is documentation or vendor source for the real `JSONHookSpec` field names — not more
+black-box probing, which is exhausted.

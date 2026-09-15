@@ -190,3 +190,31 @@ env var, not a guarantee.
 
 Next step is documentation or vendor source for the real `JSONHookSpec` field names — not more
 black-box probing, which is exhausted.
+
+## Tested 2026-09-15: agy ignores `$SHELL`
+
+The guard-shell pattern that works for Claude Code (`SecureMindkym/securemind-claude-remote` —
+`export SHELL=.../claude-guard-shell.sh`, every command intercepted before it runs) **cannot be
+ported to agy.**
+
+```
+SHELL=/tmp/shim.sh agy --dangerously-skip-permissions -p "run exactly: echo SHELLTEST"
+→ SHELLTEST        command executed
+→ shim log         EMPTY — never invoked
+```
+
+agy execs directly, the same as Grok. Only Claude Code honours `$SHELL`, which is precisely why
+the Claude remote-control guard works and why this repo exists at all.
+
+### Where that leaves the design
+
+| Approach | Status |
+|---|---|
+| `$SHELL` guard shell | **Dead.** agy ignores it (tested above) |
+| `PreToolUse` hook | Loads, never fires; `JSONHookSpec` schema undocumented |
+| Native `permissions.allow` rules | **Most promising.** But agy states plainly: *"Settings allow-rules do not apply"* in headless `-p` mode — interactive only |
+| `--sandbox` | Untested here; generic restrictions, not homelab-aware |
+
+agy ships `/permissions` and `/hooks` slash-commands that add, edit and remove rules across all
+three config scopes from inside an interactive session. **That is the vendor's own schema and the
+next thing to read** — it beats any further black-box probing of the binary.

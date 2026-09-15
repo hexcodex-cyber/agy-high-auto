@@ -1,17 +1,9 @@
 {
-  "_comment": "CANDIDATE SCHEMA - NOT YET CONFIRMED against a running agy session. Keys were read out of the agy 1.2.2 binary (jsonhook.JSONHookSpec, ParseHooksFile, MatchesToolName): matcher, matchers, argsContain, toolName, eventName, mode (command|prompt), command, prompt, model, timeoutSec. Install this, run one session, then read ~/.agy-hook-probe.jsonl to learn the real payload before writing the real guard.",
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "run_command",
-        "hooks": [
-          {
-            "mode": "command",
-            "command": "~/tools/agy-high-auto/guard/probe.sh PreToolUse",
-            "timeoutSec": 10
-          }
-        ]
-      }
-    ]
+  "homelab-guard": {
+    "mode": "command",
+    "command": "~/tools/agy-high-auto/guard/probe.sh",
+    "eventName": "PreToolUse",
+    "matcher": ".*",
+    "timeoutSec": 10
   }
 }
